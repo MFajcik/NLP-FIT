@@ -198,13 +198,14 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True, stem_words:
 
 
 
-def count_words(input_file, output_file, to_sort=True, num_of_processes=8):
+def count_words(input_file, output_file, to_sort=True,lemmatize=True,stem=False, num_of_processes=8):
     """
+    The words are lemmatized but not stemmed by default during counting
     :param input_file:
     :param output_file:
     :param to_sort:
     """
-    duration,wordcounter = preprocess_file(input_file, None,stem_words=False,count_words=True,num_of_processes=num_of_processes)
+    duration,wordcounter = preprocess_file(input_file, None,lemmatize_words=lemmatize,stem_words=stem,count_words=True,num_of_processes=num_of_processes)
     print("Counting finished in {} seconds.".format(duration))
 
     if to_sort:
