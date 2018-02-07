@@ -1,6 +1,5 @@
 # PyVersion: 3.6
 # Authors: Martin Fajčík FIT@BUT
-# Last edited: 01.02.2018
 
 def read_word_chunks_with_offset(filename: str, bytes_to_read: int,
                                 startoffset: int, endoffset: int):
@@ -9,7 +8,7 @@ def read_word_chunks_with_offset(filename: str, bytes_to_read: int,
     :param filename: file to read
     :param bytes_to_read:
     :return generator that reads bytes_to_read bytes each call
-            and returns list of words
+            and yields properly aligned chunks of text
     """
     last = ""
     with open(filename, mode="rb") as inp:
