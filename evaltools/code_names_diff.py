@@ -31,13 +31,6 @@ FRAME_LIST_LENGTH = 30
 # Length of one result in vertical_axis (RESULT_STEP rows)
 RESULT_STEP = 3
 
-
-def check_if_contains_word_counts(df):
-    third_column = df.iloc[0][2]
-    test_item = re.split(':|\s', third_column)[0]
-    return not re.match("^\d+?\.\d+?$", potential_float) is None
-
-
 def drop_non_relevant(df):
     rows = list(df.iterrows())
     for i, row in rows:
@@ -95,6 +88,13 @@ def diff_results(df_result_a, df_result_b, sort):
                     order_dict = dict(zip(nobr_tokens_a, range(len(nobr_tokens_a))))
                     for token in nobr_tokens_b:
                         diff_order.append(order_dict.get(token, len(diff_order)))
+                    #In case some token of b was not between tokens of a, we need to put all numbers lin
+                    missing=[]
+                    for x in range(len(diff_order)):
+                        if x not in diff_order:
+                            missing.append(x)
+                    diff_order+=missing
+
                     for i, x in enumerate(diff_order):
                         if i != x:
                             change_flag = True
@@ -112,7 +112,10 @@ def diff_results(df_result_a, df_result_b, sort):
             list_tuples = list()
             for i in range(len(list_a)):
                 items_a = list_a[i].split(":")
-                items_b = list_b[i].split(":")
+                if i<len(list_b):
+                    items_b = list_b[i].split(":")
+                else:
+                    items_b = ("","")
                 # if contains_word_counts_a:
                 #     diff_item_a = DiffItem(items_a[0],items_a[1],items_a[2])
                 # else:
@@ -202,8 +205,7 @@ def form_data_frame(t_avp, t_oov, diffs):
     df.loc[idx + 1] = align(["Out of Vocabulary Diff", t_oov])
     return df
 
-
-if __name__ == "__main__":
+def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument("-i1", "--input1",
                         required=True,
@@ -221,7 +223,7 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         help="Sorts diff according to average MAP differences")
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     logging = init_logging(os.path.basename(sys.argv[0]).split(".")[0], logpath=args.logpath)
     print("Reading tsvs...")
     result1 = pd.read_csv(args.input1, delimiter="\t", header=None)
@@ -236,3 +238,6 @@ if __name__ == "__main__":
     writer = add_formatting_xslx(df, sequence_diff, writer)
     print("Saving diff to {}.".format("{}.xlsx".format(args.output)))
     writer.save()
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

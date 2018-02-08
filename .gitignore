@@ -97,7 +97,7 @@ ENV/
 # mkdocs documentation
 /site
 
-# python logging logs
+# Python logging
 log/
 
 # mypy
