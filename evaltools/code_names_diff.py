@@ -167,15 +167,15 @@ def add_formatting_xslx(df, diffs, writer):
         default_order = range(len(diff_order))
         v_offset = V_OFFSET_START
         for color_idx_a, color_idx_b in zip(default_order, diff_order):
-            setCellColor(wb, ws, df, h_offset, v_offset, colors[color_idx_a].get_hex_l(), expected)
-            setCellColor(wb, ws, df, h_offset + 1, v_offset, colors[color_idx_b].get_hex_l(), expected)
+            set_cell_color(wb, ws, df, h_offset, v_offset, colors[color_idx_a].get_hex_l(), expected)
+            set_cell_color(wb, ws, df, h_offset + 1, v_offset, colors[color_idx_b].get_hex_l(), expected)
             v_offset += 1
         h_offset += RESULT_STEP
 
     return writer
 
 
-def setCellColor(wb, ws, df, row, col, color, expected):
+def set_cell_color(wb, ws, df, row, col, color, expected):
     content = df.iloc[row - H_OFFSET_START][col]
     opts = {'bold': rm_brackets(content) in expected, 'bg_color': color}
     myformat = wb.add_format(opts)
