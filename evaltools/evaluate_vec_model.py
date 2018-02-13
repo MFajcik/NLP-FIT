@@ -259,6 +259,7 @@ if __name__ == "__main__":
                         default=True,
                         help="Sort out_buff.")
     parser.add_argument("-f", "--frequency",
+                        default=None,
                         help="Dictionary of word occurences in corpus.")
     parser.add_argument("-l", "--logpath",
                         default=os.getcwd(),

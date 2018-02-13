@@ -13,8 +13,8 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from evaluation.logging_config import init_logging
-from nlpfit.preprocessing.preprocessor import lemmatize_list
+from other.logging_config import init_logging
+from preprocessing.preprocessor import lemmatize_list
 
 
 def get_words(input):
@@ -84,10 +84,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     logging = init_logging(os.path.basename(sys.argv[0]).split(".")[0], logpath=args.logpath)
-    args.input = "/home/ifajcik/word2vec/evaluation/code_names.cnwa"
-    # args.model = "/home/ifajcik/word2vec/trainedmodels/tf_w2vopt_ebooks_lemmatized_and_stemmed_1iteration/model.vec"
-    args.model = "/mnt/minerva1/nlp/projects/semantic_relatedness10/models/w2v/cbow_ns_300_5_2017-12-20_23:29.vec"
-    args.output = "TSNE_code_names_zoznam_NEW"
     logging.info("Counting words from cnwa...")
     words = get_words(args.input)
     logging.info("Lemmatizing words...")

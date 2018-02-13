@@ -1,15 +1,13 @@
-from gensim.models.keyedvectors import KeyedVectors
 import sys
 
-from sklearn.decomposition import PCA as sklearnPCA
-from matplotlib.mlab import PCA
+import matplotlib.pyplot as plt
+import numpy as np
+from gensim.models.keyedvectors import KeyedVectors
+from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.manifold import TSNE
 from tqdm import tqdm
-from ast import literal_eval
-import numpy as np
-import matplotlib.pyplot as plt
 
-from matplotlib.backends.backend_pdf import PdfPages
+
 def plot_with_labels(low_dim_embs, labels, filename='tsne_.png'):
     assert low_dim_embs.shape[0] >= len(labels), "More labels than embeddings"
     fig = plt.figure(figsize=(18, 18))  # in inches

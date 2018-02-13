@@ -31,8 +31,8 @@ def init_logging(module,logpath=os.getcwd()):
     return logging
 
 class logger_stub():
-    def info(self, *args):
-        print(args)
-    def critical(self, *args):
-        sys.stderr.print(args)
-        sys.stderr.print("\n")
+    def info(self, str):
+        print(str)
+    def critical(self, str):
+        sys.stderr.write(str)
+        sys.stderr.write("\n")
