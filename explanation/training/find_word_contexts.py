@@ -4,7 +4,6 @@ import time
 from collections import defaultdict
 
 import numpy as np
-from scipy.sparse import csr_matrix
 
 from other.logging_config import logger_stub
 from other.paralellism import parallel_worker
@@ -30,7 +29,7 @@ def count_context(textchunk, result, idx, opts, logger):
     """
     vocab = opts.vocabulary()
     if result is None:
-        result = csr_matrix((3, 4))
+        result = defaultdict(lambda: np.zeros(len(vocab)))
     tokens = textchunk.split()
     w2i = {x: i for i, x in enumerate(vocab)}
     window = opts.window
