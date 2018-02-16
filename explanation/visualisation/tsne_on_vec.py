@@ -62,7 +62,7 @@ def run_TSNE(model,freqs, outputs=10):
 
 
 
-def read_vocab(vocab_file):
+def read_vocab(vocab_file, min_freq=-1):
     wdict = dict()
     with open(vocab_file,) as f:
         words = f.read().split("\n")
@@ -70,7 +70,11 @@ def read_vocab(vocab_file):
         #file contains empty line in the end
         for i in tqdm(range(len(words)-1)):
             splitted = words[i].split()
-            wdict[splitted[0]] = int(splitted[1])
+            #Ignore errors
+            if len(splitted) == 2:
+                freq = int(splitted[1])
+                if  freq> min_freq:
+                    wdict[splitted[0]] =  freq
             #words[i]=literal_eval(words[i].split()[0]).decode()
     return wdict
 

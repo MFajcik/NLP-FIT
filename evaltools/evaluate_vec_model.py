@@ -136,7 +136,7 @@ def cnwa2cnwae(input_file, dictionary, model, sort = True, frequency_file=None):
                             logging.error("Agent %s not in vocabulary" % agent_lemma)
                             oov_set.add(agent+"({})".format(agent_lemma))
                             continue
-                        # Calculate similarity
+                        # Calculate cosine similarity
                         similarity = model.similarity(hint_lemma, agent_lemma)
                         if agent in similarity_dict:
                             if similarity > similarity_dict[agent]:

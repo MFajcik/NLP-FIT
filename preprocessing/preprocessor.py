@@ -67,7 +67,7 @@ def lemmatize_list(words: string_list, dictionary: str) -> string_list:
 def merge_files(tmpdir, ofile):
     if not ofile:
         return
-    regexp = re.compile(r"^(\d+)_" + ofile + r"$")
+    regexp = re.compile(r"^(\d+)_" + os.path.basename(ofile) + r"$")
     tmpdir_files = os.listdir(tmpdir)
     valid_files = list(map(lambda x: bool(regexp.match(x)), tmpdir_files))
     files = list(itertools.compress(tmpdir_files, valid_files))
@@ -82,7 +82,7 @@ def merge_files(tmpdir, ofile):
 
 # 10MB chunks per process
 def _worker(idx, s_offset, e_offset, tmpdir, opts, logger, chunk_size=10485760):
-    ofile = "{}_".format(idx) + opts.ofile if opts.ofile else None
+    ofilename = "{}_".format(idx) + os.path.basename(opts.ofile) if opts.ofile else None
     wordcounter = Counter() if opts.count_words else None
 
     preprocessing_tools = DotDict()
@@ -92,8 +92,8 @@ def _worker(idx, s_offset, e_offset, tmpdir, opts, logger, chunk_size=10485760):
     preprocessing_tools.tokens = morphodita.TokenRanges()
     preprocessing_tools.tokenizer = preprocessing_tools.tagger.newTokenizer()
     preprocessing_tools.stopwords = open(opts.stopwords_file, encoding="utf-8", mode='r').read().splitlines()
-    if ofile:
-        with open(os.path.join(tmpdir, ofile), mode="w") as of:
+    if opts.ofile:
+        with open(os.path.join(tmpdir, ofilename), mode="w") as of:
             for chunk in read_word_chunks_with_offset(opts.ifile, chunk_size, s_offset, e_offset):
                 preprocessed, wordcounter = process_text(chunk, preprocessing_tools, opts, logger, wordcounter)
                 of.write(preprocessed)
@@ -121,11 +121,8 @@ def process_text(chunk: str, tools, opts, logger, wordcounter) -> (str, dict):
                 output = tools.forms[i]
 
             # Filter stopwords and punctuation
-            if not (opts.stem_words and opts.remove_stop_words) or \
-                    (opts.stem_words and lemma.tag[0] != "Z") or \
-                    (opts.remove_stop_words and tools.forms[i] not in tools.stopwords) or \
-                    (opts.stem_words and opts.remove_stop_words and
-                     (lemma.tag[0] != "Z" or tools.forms[i] not in tools.stopwords)):
+            if not opts.remove_stop_words or\
+                (lemma.tag[0] != "Z" and tools.forms[i] not in tools.stopwords):
                 output = output.lower()
                 processed_chunk += "%s " % (output)
                 if opts.count_words:
@@ -136,8 +133,8 @@ default_tagger_file = "../contrib/preprocessing/cz_morphodita/models/czech-morff
 default_stopwords_file = "../contrib/preprocessing/cz_stopwords/czechST.txt"
 
 
-def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True, stem_words: bool = True,
-                    remove_stop_words=True, tag_words: bool = False, count_words: bool = False, logger=None,
+def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
+                    remove_stop_words : bool =True, tag_words: bool = False, count_words: bool = False, logger=None,
                     num_of_processes: int = 8, tagger_file=default_tagger_file,
                     stopwords_file=default_stopwords_file, tmpdir="tmp") -> (float, dict):
     """
@@ -146,7 +143,6 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True, stem_words:
     :param ifile: input file name
     :param ofile: out_buff file name
     :param lemmatize_words:
-    :param stem_words:
     :param tag_words: if option is True, words are tagged with their POS tags
     :param count_words:
     :param logger: custom logger
@@ -160,7 +156,6 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True, stem_words:
     opts.ifile = ifile
     opts.ofile = ofile
     opts.lemmatize_words = lemmatize_words
-    opts.stem_words = stem_words
     opts.tag_words = tag_words
     opts.count_words = count_words
     opts.tagger_file = tagger_file
@@ -198,14 +193,14 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True, stem_words:
 
 
 
-def count_words(input_file, output_file, to_sort=True,lemmatize=True,stem=False, num_of_processes=8):
+def count_words(input_file, output_file, to_sort=True, lemmatize=True, remove_stop_words=False, num_of_processes=8):
     """
-    The words are lemmatized but not stemmed by default during counting
+    The words are lemmatized but stop words are not removed by default during counting
     :param input_file:
     :param output_file:
     :param to_sort:
     """
-    duration,wordcounter = preprocess_file(input_file, None,lemmatize_words=lemmatize,stem_words=stem,count_words=True,num_of_processes=num_of_processes)
+    duration,wordcounter = preprocess_file(input_file, None, lemmatize_words=lemmatize, remove_stop_words=remove_stop_words, count_words=True, num_of_processes=num_of_processes)
     print("Counting finished in {} seconds.".format(duration))
 
     if to_sort:

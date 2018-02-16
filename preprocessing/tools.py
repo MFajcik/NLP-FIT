@@ -4,6 +4,8 @@ import math
 import os
 import threading
 from typing import List
+import numpy as np
+from tqdm import tqdm
 
 
 def get_character(f):
@@ -12,6 +14,18 @@ def get_character(f):
     except UnicodeDecodeError:
         return "ERROR"
 
+#Custom (de)serialization
+def dump_npdict(r, fname):
+    with open(fname, mode="w") as f:
+        for key, v in tqdm(zip(r[0].keys(), r[0].values())):
+            f.write("{} {}\n".format(key, ' '.join(v.astype(str))))
+
+def load_npdict(fname):
+    d = dict()
+    with open(fname, mode="r") as f:
+        for line in f.readlines():
+            tokens = line.split()
+            d[tokens[0]] = np.array(tokens[1:]).astype(int)
 
 def find_textfile_split_points(file: str, n: int) -> List[int]:
     """
