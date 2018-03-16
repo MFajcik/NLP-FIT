@@ -20,17 +20,22 @@ def get_words(input):
     return words
 
 
-def generate_files_for_tflow_embedding_projector(model, lemmatized_words, o_vec="vecfile.tsv", o_label="labelfile.tsv", logging=logger_stub()):
-    with open(o_vec,mode="w") as ov, open(o_label,mode="w") as ol:
+def generate_files_for_tflow_embedding_projector(model, lemmatized_words, o_vec="vecfile.tsv", o_label="labelfile.tsv",
+                                                 logging=logger_stub()):
+    with open(o_vec, mode="w") as ov, open(o_label, mode="w") as ol:
+        already_written = []
         for word in lemmatized_words:
-            #We want to show similar words and the important word
+            # We want to show similar words and the important word
             if word in model.vocab:
-                candidates=list(map(lambda x: x[0],model.wv.most_similar(positive=word))) + [word]
+                candidates = list(map(lambda x: x[0], model.wv.most_similar(positive=word))) + [word]
                 for candidate in candidates:
-                    ol.write(candidate+"\n")
-                    ov.write('\t'.join(model.wv[candidate].astype(str))+"\n")
+                    if candidate not in already_written:
+                        ol.write(candidate + "\n")
+                        ov.write('\t'.join(model.wv[candidate].astype(str)) + "\n")
+                        already_written.append(candidate)
             else:
                 logging.critical("Word {} out of vocabulary.".format(word))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -63,4 +68,3 @@ if __name__ == "__main__":
     model = KeyedVectors.load_word2vec_format(args.model, binary=False)
     logging.info("Generating tensorflow embedding projection outputs")
     generate_files_for_tflow_embedding_projector(model, lemmatized_words, o_vec=args.o_vec, o_label=args.o_labels)
-
