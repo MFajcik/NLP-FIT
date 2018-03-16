@@ -2,7 +2,7 @@
 # Authors: Martin Fajčík FIT@BUT
 
 def read_word_chunks_with_offset(filename: str, bytes_to_read: int,
-                                startoffset: int, endoffset: int):
+                                 startoffset: int, endoffset: int):
     """
     Lazy file reading,
     :param filename: file to read
@@ -14,18 +14,19 @@ def read_word_chunks_with_offset(filename: str, bytes_to_read: int,
     with open(filename, mode="rb") as inp:
         inp.seek(startoffset)
         offset = inp.tell()
-        while offset<endoffset:
-            if (offset+bytes_to_read>endoffset):
-                bytes_to_read = endoffset-offset
-            buf = str(inp.read(bytes_to_read),encoding='utf-8',errors="ignore")
+        while offset < endoffset:
+            if (offset + bytes_to_read > endoffset):
+                bytes_to_read = endoffset - offset
+            buf = str(inp.read(bytes_to_read), encoding='utf-8', errors="ignore")
             offset = inp.tell()
             if not buf:
                 break
             buf = last + buf
             # Last one can be incomplete, we will pop it and use it next time!
-            buf,last = buf.rsplit(None, 1)
+            buf, last = buf.rsplit(None, 1)
             yield buf
-        yield ' '+last
+        yield ' ' + last
+
 
 def read_word_lists_with_offset(filename: str, bytes_to_read: int,
                                 startoffset: int, endoffset: int):
@@ -40,10 +41,10 @@ def read_word_lists_with_offset(filename: str, bytes_to_read: int,
     with open(filename, mode="rb") as inp:
         inp.seek(startoffset)
         offset = inp.tell()
-        while offset<endoffset:
-            if (offset+bytes_to_read>endoffset):
-                bytes_to_read = endoffset-offset
-            buf = str(inp.read(bytes_to_read),encoding='utf-8',errors="ignore")
+        while offset < endoffset:
+            if (offset + bytes_to_read > endoffset):
+                bytes_to_read = endoffset - offset
+            buf = str(inp.read(bytes_to_read), encoding='utf-8', errors="ignore")
             offset = inp.tell()
             if not buf:
                 break
@@ -52,6 +53,7 @@ def read_word_lists_with_offset(filename: str, bytes_to_read: int,
             last = words.pop()
             yield words
         yield [last]
+
 
 def read_word_lists(filename: str, chars_to_read: int):
     """

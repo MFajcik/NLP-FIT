@@ -4,7 +4,7 @@ from ufal import morphodita
 if __name__ == "__main__":
     testfilecontent = open("../../corpus_data/ebooks_corpus_CZ/few_sentences.txt").read()
     tf = "../../contrib/preprocessing/cz_morphodita/models/czech-morfflex-pdt-160310.tagger"
-    tagger =morphodita.Tagger.load(tf)
+    tagger = morphodita.Tagger.load(tf)
     forms = morphodita.Forms()
     lemmas = morphodita.TaggedLemmas()
     tranges = morphodita.TokenRanges()
@@ -16,4 +16,4 @@ if __name__ == "__main__":
         for i in range(len(lemmas)):
             lemmatized = tagger.getMorpho().rawLemma(lemmas[i].lemma)
             processed_chunk.append(lemmatized)
-    print (" ".join(processed_chunk))
+    print(" ".join(processed_chunk))

@@ -31,6 +31,7 @@ FRAME_LIST_LENGTH = 30
 # Length of one result in vertical_axis (RESULT_STEP rows)
 RESULT_STEP = 3
 
+
 def drop_non_relevant(df):
     rows = list(df.iterrows())
     for i, row in rows:
@@ -88,12 +89,12 @@ def diff_results(df_result_a, df_result_b, sort):
                     order_dict = dict(zip(nobr_tokens_a, range(len(nobr_tokens_a))))
                     for token in nobr_tokens_b:
                         diff_order.append(order_dict.get(token, len(diff_order)))
-                    #In case some token of b was not between tokens of a, we need to put all numbers lin
-                    missing=[]
+                    # In case some token of b was not between tokens of a, we need to put all numbers lin
+                    missing = []
                     for x in range(len(diff_order)):
                         if x not in diff_order:
                             missing.append(x)
-                    diff_order+=missing
+                    diff_order += missing
 
                     for i, x in enumerate(diff_order):
                         if i != x:
@@ -112,10 +113,10 @@ def diff_results(df_result_a, df_result_b, sort):
             list_tuples = list()
             for i in range(len(list_a)):
                 items_a = list_a[i].split(":")
-                if i<len(list_b):
+                if i < len(list_b):
                     items_b = list_b[i].split(":")
                 else:
-                    items_b = ("","")
+                    items_b = ("", "")
                 # if contains_word_counts_a:
                 #     diff_item_a = DiffItem(items_a[0],items_a[1],items_a[2])
                 # else:
@@ -205,6 +206,7 @@ def form_data_frame(t_avp, t_oov, diffs):
     df.loc[idx + 1] = align(["Out of Vocabulary Diff", t_oov])
     return df
 
+
 def main(args):
     parser = argparse.ArgumentParser()
     parser.add_argument("-i1", "--input1",
@@ -238,6 +240,7 @@ def main(args):
     writer = add_formatting_xslx(df, sequence_diff, writer)
     print("Saving diff to {}.".format("{}.xlsx".format(args.output)))
     writer.save()
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

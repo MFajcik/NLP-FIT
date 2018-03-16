@@ -33,14 +33,14 @@ def read_frequency_vocab(frequency_file):
     with open(frequency_file) as f:
         for line in tqdm(f):
             word_and_count = line.split()
-            if len(word_and_count)<2:
+            if len(word_and_count) < 2:
                 logging.critical("Encouneted line with missing/whitespace word:\n'{}'".format(line))
             elif int(word_and_count[1]) > STRIP_NON_FREQUENT:
                 vocab_dict[word_and_count[0]] = int(word_and_count[1])
     return vocab_dict
 
 
-def cnwa2cnwae(input_file, dictionary, model, sort = True, frequency_file=None):
+def cnwa2cnwae(input_file, dictionary, model, sort=True, frequency_file=None):
     """
     Converts file in cnwa format to file in cnwar format
     Parameters:
@@ -129,12 +129,12 @@ def cnwa2cnwae(input_file, dictionary, model, sort = True, frequency_file=None):
                         hint_dict[hint] = frequency_dict.get(hint_lemma, 0)
                     if not hint_lemma in model.vocab:
                         logging.error("Hint %s not in vocabulary" % hint_lemma)
-                        oov_set.add(hint+"({})".format(hint_lemma))
+                        oov_set.add(hint + "({})".format(hint_lemma))
                         continue
                     for agent_lemma in agent_lemmas[0]:
                         if not agent_lemma in model.vocab:
                             logging.error("Agent %s not in vocabulary" % agent_lemma)
-                            oov_set.add(agent+"({})".format(agent_lemma))
+                            oov_set.add(agent + "({})".format(agent_lemma))
                             continue
                         # Calculate cosine similarity
                         similarity = model.similarity(hint_lemma, agent_lemma)
@@ -172,7 +172,7 @@ def cnwa2cnwae(input_file, dictionary, model, sort = True, frequency_file=None):
             output_buf.append([line, sim_buf, avg_precision])
 
     if sort:
-        output_buf.sort(key=lambda x: float(x[2]),reverse=True)
+        output_buf.sort(key=lambda x: float(x[2]), reverse=True)
     return output_buf, oov, totalterms, list(oov_set), hint_dict
 
 

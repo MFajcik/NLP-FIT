@@ -14,11 +14,20 @@ def get_character(f):
     except UnicodeDecodeError:
         return "ERROR"
 
-#Custom (de)serialization
+
+def sum_dicts(dicts):
+    for d in dicts[1:]:
+        for k, v in d.items():
+            dicts[0][k] += v
+    return dict(dicts[0])
+
+
+# Custom (de)serialization
 def dump_npdict(r, fname):
     with open(fname, mode="w") as f:
         for key, v in tqdm(zip(r[0].keys(), r[0].values())):
             f.write("{} {}\n".format(key, ' '.join(v.astype(str))))
+
 
 def load_npdict(fname):
     d = dict()
@@ -26,6 +35,18 @@ def load_npdict(fname):
         for line in f.readlines():
             tokens = line.split()
             d[tokens[0]] = np.array(tokens[1:]).astype(int)
+
+
+# Function taken from tensorflow tutorials project
+def ipython_shell(local_ns=None):
+    # An interactive shell is useful for debugging/development.
+    import IPython
+    user_ns = {}
+    if local_ns:
+        user_ns.update(local_ns)
+    user_ns.update(globals())
+    IPython.start_ipython(argv=[], user_ns=user_ns)
+
 
 def find_textfile_split_points(file: str, n: int) -> List[int]:
     """

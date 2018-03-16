@@ -1,5 +1,5 @@
-#Taken from
-#https://github.com/aubry74/visual-word2vec
+# Taken from
+# https://github.com/aubry74/visual-word2vec
 import gensim.models as w2v
 import sklearn.decomposition as dcmp
 import numpy as np
@@ -15,13 +15,15 @@ Word2vec + PCA + Clustering
 """
 __author__ = "Aubry Cholleton"
 
-#model_path = '/mnt/minerva1/nlp/projects/semantic_relatedness10/models/w2v/cbow_ns_300_5_2017-12-20_23:29.vec'
+# model_path = '/mnt/minerva1/nlp/projects/semantic_relatedness10/models/w2v/cbow_ns_300_5_2017-12-20_23:29.vec'
 model_path = '/home/ifajcik/word2vec/trainedmodels/tf_w2vopt_ebooks_lemmatized_and_stemmed_32t_30negs_6window/model.vec'
+
+
 class SemanticMap:
     def __init__(self, model_path):
-        print ('Loading model ...')
+        print('Loading model ...')
         self.model = KeyedVectors.load_word2vec_format(model_path, binary=False)
-        print ('Ready')
+        print('Ready')
 
     def __split_words(self, input_string):
         return re.findall(r"[\w']+", input_string)
@@ -40,29 +42,29 @@ class SemanticMap:
 
     def __get_compositional_entity_vector(self, entity):
         array = np.array(self.model[entity[0]])
-        for ind in range (1, len(entity)):
+        for ind in range(1, len(entity)):
             array = array + np.array(self.model[entity[ind]])
-        return array/len(entity)
+        return array / len(entity)
 
     def __get_vector(self, term):
         words = self.__clean_words(self.__split_words(term))
 
         if len(words) < 1:
-            print ('All the terms have been filtered.')
+            print('All the terms have been filtered.')
         if len(words) == 1:
             try:
                 return self.__get_non_compositional_entity_vector(words)
             except:
-                print ('Out-of-vocabulary entity')
+                print('Out-of-vocabulary entity')
                 raise
         elif len(words) < 4:
             try:
                 return self.__get_compositional_entity_vector(words)
             except:
-                print ('Out-of-vocabulary word in compositional entity')
+                print('Out-of-vocabulary word in compositional entity')
                 raise
         else:
-            print ('Entity is too long.')
+            print('Entity is too long.')
 
     def __reduce_dimensionality(self, word_vectors, dimension=2):
         data = np.array(word_vectors)
@@ -86,7 +88,7 @@ class SemanticMap:
                     final_sizes.append(sizes[words.index(word)])
                 final_words.append(word)
             except Exception:
-                print ('not valid ' + word)
+                print('not valid ' + word)
 
         return vectors, final_words, final_sizes
 
@@ -97,10 +99,10 @@ class SemanticMap:
         for label, x, y in zip(lemmas, vectors[:, 0], vectors[:, 1]):
             plt.annotate(
                 label,
-                xy = (x, y), xytext = (-20, 20),
-                textcoords = 'offset points', ha = 'right', va = 'bottom',
-                bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
-                arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+                xy=(x, y), xytext=(-20, 20),
+                textcoords='offset points', ha='right', va='bottom',
+                bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 
         plt.show()
 
@@ -111,16 +113,18 @@ class SemanticMap:
         self.plot(vectors, words, clusters, sizes)
 
     def print_results(self, words, clusters):
-        print (words)
-        print (clusters.tolist())
+        print(words)
+        print(clusters.tolist())
+
 
 def cli(mapper_cli):
     # while True:
     #     line = input('Enter words or MWEs > ')
     #     if line == 'exit':
     #         break
-    line="pes, mačka, kocour, král, královna"
+    line = "pes, mačka, kocour, král, královna"
     mapper_cli.map_cluster_plot(line.split(','), None, 0.2)
+
 
 if __name__ == "__main__":
     mapper = SemanticMap(model_path)

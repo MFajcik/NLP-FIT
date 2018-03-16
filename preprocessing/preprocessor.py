@@ -21,6 +21,7 @@ from preprocessing.tools import DotDict, find_textfile_split_points
 
 string_list = List[str]
 
+
 def get_lemma_dict(words: string_list, morpho, lemmas):
     """
     :param words: list with word to analyze
@@ -121,20 +122,21 @@ def process_text(chunk: str, tools, opts, logger, wordcounter) -> (str, dict):
                 output = tools.forms[i]
 
             # Filter stopwords and punctuation
-            if not opts.remove_stop_words or\
-                (lemma.tag[0] != "Z" and tools.forms[i] not in tools.stopwords):
+            if not opts.remove_stop_words or \
+                    (lemma.tag[0] != "Z" and tools.forms[i] not in tools.stopwords):
                 output = output.lower()
                 processed_chunk += "%s " % (output)
                 if opts.count_words:
                     wordcounter[output] = wordcounter.get(output, 0) + 1
     return processed_chunk, wordcounter
 
+
 default_tagger_file = "../contrib/preprocessing/cz_morphodita/models/czech-morfflex-pdt-160310.tagger"
 default_stopwords_file = "../contrib/preprocessing/cz_stopwords/czechST.txt"
 
 
 def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
-                    remove_stop_words : bool =True, tag_words: bool = False, count_words: bool = False, logger=None,
+                    remove_stop_words: bool = True, tag_words: bool = False, count_words: bool = False, logger=None,
                     num_of_processes: int = 8, tagger_file=default_tagger_file,
                     stopwords_file=default_stopwords_file, tmpdir="tmp") -> (float, dict):
     """
@@ -192,7 +194,6 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
     return duration, wordcounter
 
 
-
 def count_words(input_file, output_file, to_sort=True, lemmatize=True, remove_stop_words=False, num_of_processes=8):
     """
     The words are lemmatized but stop words are not removed by default during counting
@@ -200,7 +201,9 @@ def count_words(input_file, output_file, to_sort=True, lemmatize=True, remove_st
     :param output_file:
     :param to_sort:
     """
-    duration,wordcounter = preprocess_file(input_file, None, lemmatize_words=lemmatize, remove_stop_words=remove_stop_words, count_words=True, num_of_processes=num_of_processes)
+    duration, wordcounter = preprocess_file(input_file, None, lemmatize_words=lemmatize,
+                                            remove_stop_words=remove_stop_words, count_words=True,
+                                            num_of_processes=num_of_processes)
     print("Counting finished in {} seconds.".format(duration))
 
     if to_sort:
