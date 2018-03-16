@@ -1,15 +1,30 @@
-from explanation.training.find_word_contexts import find_word_bow_vectors
+#!/usr/bin/python3
+# Martin Fajcik
+import sys
+
+from explanation.training.find_word_contexts import WordContextCalculator
 from explanation.visualisation.tsne_on_vec import read_vocab
-from other.gensim_demo import _start_shell
 
-vocab = read_vocab("/home/ifajcik/deep_learning/word2vec/corpus_data/corpus_vocabs/t.txt", min_freq=5)
-r = find_word_bow_vectors("/home/ifajcik/deep_learning/word2vec/corpus_data/ebooks_corpus_CZ/cwc1meg", vocab.keys, num_of_processes=2)
-print("Finished after %d s"%r[1])
+if __name__ == "__main__":
+    CWC2011VOCAB = "/home/ifajcik/deep_learning/word2vec/corpus_data/corpus_vocabs/vocab_cwc2011.txt"
+    CWC2011CORPUS = "/home/ifajcik/deep_learning/word2vec/corpus_data/cwc_corpus2011/cwc2011"
+    CWC1megtest = "/home/ifajcik/deep_learning/word2vec/corpus_data/cwc_corpus2011/cwc1meg"
+    EBOOKSVOCAB = "/home/ifajcik/deep_learning/word2vec/corpus_data/corpus_vocabs/vocab_ebooks_nostopwords.txt"
+    EBOOKSCORPUS = "/home/ifajcik/deep_learning/word2vec/corpus_data/ebooks_corpus_CZ/e_knihy_preprocessed.txt"
+    vocab = read_vocab(EBOOKSVOCAB, min_freq=5)
+    bow_vectors = WordContextCalculator(EBOOKSCORPUS, vocab, num_of_processes=int(sys.argv[1]), window=5)
+    bow_vectors.word_bow()
+    print("Saving BOW matrix")
+    # bow_vectors.savebow("bow_CWC2011")
+    bow_vectors.savebow("bow_eboooks_w5")
+    # avg_word_bow = bow_vectors.avg_bow()
 
-i2w = {i: x for i, x in enumerate(vocab.keys())}
+    # bow_vectors = WordContextCalculator(None,vocab)
+    # print("Loading model")
+    # bow_vectors.loadbow("bow")
 
-get_most_coocurent()
-_start_shell(locals())
+    # from other.gensim_demo import _start_shell
+    # _START_SHELL(locals())
 
-#dump_npdict(r,"context.txt")
-#d=read_npdict("context.txt")
+    # dump_npdict(r,"context.txt")
+    # d=read_npdict("context.txt")
