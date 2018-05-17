@@ -2,10 +2,10 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
+from evaltools.evaluate_vec_model import read_frequency_vocab
 from gensim.models.keyedvectors import KeyedVectors
 from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.manifold import TSNE
-from tqdm import tqdm
 
 
 def plot_with_labels(low_dim_embs, labels, filename='tsne_.png'):
@@ -63,23 +63,6 @@ def run_TSNE(model, freqs, outputs=10):
     # pca = PCA(embeddings,standardize=True)
 
 
-def read_vocab(vocab_file, min_freq=-1):
-    wdict = dict()
-    with open(vocab_file, ) as f:
-        words = f.read().split("\n")
-        print("Reading and parsing vocabulary...")
-        # file contains empty line in the end
-        for i in tqdm(range(len(words) - 1)):
-            splitted = words[i].split()
-            # Ignore errors
-            if len(splitted) == 2:
-                freq = int(splitted[1])
-                if freq > min_freq:
-                    wdict[splitted[0]] = freq
-            # words[i]=literal_eval(words[i].split()[0]).decode()
-    return wdict
-
-
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         print("Loading model...")
@@ -87,7 +70,7 @@ if __name__ == "__main__":
         print("Done")
         run_TSNE(model)
     elif len(sys.argv) > 2:
-        word_frequencies = read_vocab(sys.argv[2])
+        word_frequencies = read_frequency_vocab(sys.argv[2])
         model = KeyedVectors.load_word2vec_format(sys.argv[1], binary=False)
         run_TSNE(model, word_frequencies)
     else:

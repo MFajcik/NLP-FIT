@@ -12,6 +12,9 @@ from preprocessing.tools import DotDict
 
 
 class WordContextCalculator():
+    """
+    TODO: documentation
+    """
     def __init__(self, corpus, vocabulary, window=5, num_of_processes=8, logger=logger_stub()):
         self.vocab = vocabulary
         self.window = window

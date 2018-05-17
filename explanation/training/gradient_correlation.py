@@ -5,7 +5,6 @@ import sys
 
 import numpy as np
 import scipy
-from gensim.models import KeyedVectors
 from sortedcontainers import SortedList
 from tqdm import tqdm
 
@@ -15,8 +14,14 @@ opts = DotDict()
 opts.window_size = 5
 opts.average_word_bytelen = 100
 
-
 def format_contexts(contexts, positions, grads=None):
+    """
+
+    :param contexts:
+    :param positions:
+    :param grads:
+    :return:
+    """
     class color:
         PURPLE = '\033[95m'
         CYAN = '\033[96m'
@@ -68,15 +73,38 @@ def format_contexts(contexts, positions, grads=None):
     return r
 
 
-def word_context_formatted(topgrads, toppositions, word_index, corpus, window_size=opts.window_size, *args, **kwargs):
-    contexts, positions, grads = find_word_contexts(toppositions, word_index, corpus, grads=topgrads,
+def word_context_formatted(toppositions, word_index, corpus, window_size=opts.window_size, *args, **kwargs):
+    """
+
+    :param toppositions:
+    :param word_index:
+    :param corpus:
+    :param window_size:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    contexts, positions, grads = find_word_contexts(toppositions, word_index, corpus,
                                                     window_size=window_size * 2, *args, **kwargs)
     return format_contexts(contexts, positions, grads)
 
 
 def find_word_contexts(toppositions, word_index, corpus, window_size=opts.window_size * 2,
-                       average_word_bytelen=opts.average_word_bytelen, grads=None):
+                       average_word_bytelen=opts.average_word_bytelen, grads=None, mapping=None):
+    """
+
+    :param toppositions:
+    :param word_index:
+    :param corpus:
+    :param window_size:
+    :param average_word_bytelen:
+    :param grads:
+    :param mapping:
+    :return:
+    """
     positions = toppositions[word_index]
+    if mapping:
+        positions = list(map(lambda x: mapping.get(x,0),positions))
     grads = grads[word_index] if grads is not None else None
     size = window_size * average_word_bytelen  # 10 for average word
     contexts = []
@@ -89,13 +117,19 @@ def find_word_contexts(toppositions, word_index, corpus, window_size=opts.window
     return contexts, positions, grads
 
 
-def word_context_cross_formatted(top_grad_pos, x, y, corpus, window_size=opts.window_size, *args, **kwargs):
-    contexts, positions, grads = find_word_context_cross(top_grad_pos, x, y, corpus,
-                                                         window_size=window_size, *args, **kwargs)
-    return format_contexts(contexts, positions, grads)
 
+def get_nearby_words(corpus, pos, size=opts.average_word_bytelen, window_size=5, remove_middle_word = True, mapping=None, mapping_corpus=None):
+    """
 
-def get_nearby_words(corpus, pos, size=opts.average_word_bytelen, window_size=5, remove_middle_word = True):
+    :param corpus:
+    :param pos:
+    :param size:
+    :param window_size:
+    :param remove_middle_word:
+    :param mapping:
+    :param mapping_corpus:
+    :return:
+    """
     with open(corpus, mode="rb") as data:
         data.seek(max(int(pos - size*2), 0))
         chunk1 = data.read(size*2).decode("utf-8", errors="ignore").split()
@@ -103,8 +137,34 @@ def get_nearby_words(corpus, pos, size=opts.average_word_bytelen, window_size=5,
         nearby = (chunk1[-(window_size + 1):] + chunk2[:window_size])
         if remove_middle_word:
             del nearby[len(nearby)//2]
-        wide_context = (chunk1[-(window_size*2 + 1):] + chunk2[:window_size*2])
+        if mapping is None:
+            wide_context = (chunk1[-(window_size*2 + 1):] + chunk2[:window_size*2])
+        else:
+            with open(mapping_corpus, mode="rb") as mappeddata:
+                pos = mapping.get(pos,0)
+                mappeddata.seek(max(int(pos - size * 2), 0))
+                chunk1 = mappeddata.read(size * 2).decode("utf-8", errors="ignore").split()
+                chunk2 = mappeddata.read(size * 2).decode("utf-8", errors="ignore").split()
+                wide_context = (chunk1[-(window_size * 2 + 1):] + chunk2[:window_size * 2])
+
     return nearby,wide_context
+
+
+def word_context_cross_formatted(top_grad_pos, x, y, corpus, window_size=opts.window_size, *args, **kwargs):
+    """
+
+    :param top_grad_pos:
+    :param x:
+    :param y:
+    :param corpus:
+    :param window_size:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    contexts, positions, grads = find_word_context_cross(top_grad_pos, x, y, corpus,
+                                                         window_size=window_size, *args, **kwargs)
+    return format_contexts(contexts, positions, grads)
 
 
 def getEmbedding(x, model):
@@ -125,6 +185,9 @@ def concat_words(words, model):
 
 
 class DistancePosContext():
+    """
+
+    """
     def __init__(self, distance, x_pos, y_pos, x_context, y_context):
         self.x_pos = x_pos
         self.y_pos = y_pos
@@ -145,6 +208,13 @@ class DistancePosContext():
         return str(self.distance)
 
 def cosine_distance_method(pos_x,pos_y,vec_method = None):
+    """
+
+    :param pos_x:
+    :param pos_y:
+    :param vec_method:
+    :return:
+    """
     u, x_context = vec_method(pos_x)
     v, y_context = vec_method(pos_y)
     distance = scipy.spatial.distance.cosine(u, v)
@@ -152,6 +222,16 @@ def cosine_distance_method(pos_x,pos_y,vec_method = None):
 
 
 def find_most_vec_similar(positions_x, positions_y, context_vec_method=None,model=None, distance_method = cosine_distance_method, topn=50):
+    """
+
+    :param positions_x:
+    :param positions_y:
+    :param context_vec_method:
+    :param model:
+    :param distance_method:
+    :param topn:
+    :return:
+    """
     ladder = SortedList()
     i = 0
     for pos_x in tqdm(positions_x):
@@ -164,10 +244,23 @@ def find_most_vec_similar(positions_x, positions_y, context_vec_method=None,mode
             ladder.add(DistancePosContext(distance, pos_x, pos_y, x_wide_context, y_wide_context))
     return ladder
 
-def find_word_context_cross(top_grad_pos, x_ind, y_ind, corpus, method="average", model=None, x_word=None,
-                            y_word=None, window_size=opts.window_size,
-                            average_word_bytelen=opts.average_word_bytelen, grads=None):
-    methods = ["average", "concatenate", "distance_correlation", "wmdistance"]
+def find_word_context_cross(top_grad_pos, x_ind, y_ind, corpus, method="average", model=None, window_size=opts.window_size,
+                            average_word_bytelen=opts.average_word_bytelen, mapping=None,mcorpus=None):
+    """
+
+    :param top_grad_pos:
+    :param x_ind:
+    :param y_ind:
+    :param corpus:
+    :param method:
+    :param model:
+    :param window_size:
+    :param average_word_bytelen:
+    :param mapping:
+    :param mcorpus:
+    :return:
+    """
+    methods = ["average", "concatenate", "distancsosporrelation", "wmdistance"]
     contexts = []
     distances = []
     positions = []
@@ -209,9 +302,10 @@ def find_word_context_cross(top_grad_pos, x_ind, y_ind, corpus, method="average"
         assert model is not None
 
         def WMD_distance_method(pos_x, pos_y,vec_method = None):
-            x_context, x_wide_context = get_nearby_words(corpus, pos_x, window_size=window_size, size=average_word_bytelen)
-            y_context, y_wide_context = get_nearby_words(corpus, pos_y, window_size=window_size, size=average_word_bytelen)
+            x_context, x_wide_context = get_nearby_words(corpus, pos_x, window_size=window_size, size=average_word_bytelen,mapping = mapping, mapping_corpus= mcorpus)
+            y_context, y_wide_context = get_nearby_words(corpus, pos_y, window_size=window_size, size=average_word_bytelen,mapping = mapping, mapping_corpus= mcorpus)
             distance = model.wv.wmdistance(x_context,y_context)
+
             return distance, x_wide_context, y_wide_context
 
         similar = find_most_vec_similar(positions_x, positions_y,distance_method=WMD_distance_method)
@@ -252,7 +346,7 @@ if __name__ == "__main__":
     ROOTDIR = "../../.."
     gdir = os.path.join(ROOTDIR, "corpus_data/gradient_ladders")
     mdir = os.path.join(ROOTDIR, "trainedmodels")
-    models = ["ebooks", "cwcdemo"]
+    models = ["ebooks", "cwcdemo", "text8"]
 
     gradient_positions_ladder_name = \
         gradient_ladder_name = \
@@ -263,18 +357,30 @@ if __name__ == "__main__":
         print("Available demo models are: " + ' '.join(models))
         raise BaseException("Unsupported demo model.")
 
+    iteration = sys.argv[3] if len(sys.argv)>3 else 0
+    mapping_fn = None
     if sys.argv[1] == models[0]:
-        gradient_positions_ladder_name = os.path.join(gdir, "ebooks/toppositions_ebooks.pkl")
-        gradient_ladder_name = os.path.join(gdir, "ebooks/topgrads_ebooks.pkl")
+        gradient_positions_ladder_name = os.path.join(gdir, "ebooks_iterative/e{}/toppositions_e_knihy_preprocessed.txt_it{}.pkl".format(iteration,iteration))
+        gradient_ladder_name = os.path.join(gdir, "ebooks_iterative/e{}/toppositions_e_knihy_preprocessed.txt_it{}.pkl".format(iteration,iteration))
+        mcorpus = os.path.join(ROOTDIR, "corpus_data/ebooks_corpus_CZ/e_knihy_preprocessed_nolemma.txt")
         corpus = os.path.join(ROOTDIR, "corpus_data/ebooks_corpus_CZ/e_knihy_preprocessed.txt")
-        w2i_fn = os.path.join(gdir, "ebooks/w2i_ebooks.pkl")
-        model_fn = os.path.join(mdir, "tf_w2vopt_ebooks_gradient_ladder/ebooks_10_gl_model.vec")
+        w2i_fn = os.path.join(gdir, "ebooks_iterative/w2i_e_knihy_preprocessed.txt.pkl")
+        mapping_fn =  os.path.join(ROOTDIR, "corpus_data/ebooks_corpus_CZ/mapping_e_knihy_preprocessed.txt_to_e_knihy_preprocessed_nolemma.txt.pkl")
+        model_fn = os.path.join(gdir, "ebooks_iterative/e_knihy_preprocessed.txt_model.vec")
     elif sys.argv[1] == models[1]:
-        gradient_positions_ladder_name = os.path.join(gdir, "cwc50m/toppositions_CWC50M.pkl")
-        gradient_ladder_name = os.path.join(gdir, "cwc50m/topgrads_CWC50M.pkl")
-        w2i_fn = os.path.join(gdir, "cwc50m/w2i_ebooks.pkl")
-        corpus = "/home/ifajcik/deep_learning/word2vec/corpus_data/cwc_corpus2011/cwc50megs"
-        model_fn = os.path.join(mdir, "tf_w2vopt_ebooks_gradient_ladder/ebooks_10_gl_model.vec")
+        pass
+        # gradient_positions_ladder_name = os.path.join(gdir, "cwc50m/toppositions_CWC50M.pkl")
+        # gradient_ladder_name = os.path.join(gdir, "cwc50m/topgrads_CWC50M.pkl")
+        # w2i_fn = os.path.join(gdir, "cwc50m/w2i_ebooks.pkl")
+        # corpus = "/home/ifajcik/deep_learning/word2vec/corpus_data/cwc_corpus2011/cwc50megs"
+        # model_fn = os.path.join(mdir, "tf_w2vopt_ebooks_gradient_ladder/ebooks_10_gl_model.vec")
+    elif sys.argv[1] == models[2]:
+        gradient_positions_ladder_name = os.path.join(gdir, "text8_iterative/e{}/toppositions_text8_it{}.pkl".format(iteration,iteration))
+        gradient_ladder_name = os.path.join(gdir, "text8_iterative/e{}/topgrads_text8_it{}.pkl".format(iteration,iteration))
+        w2i_fn = os.path.join(gdir, "text8_iterative/w2i_text8.pkl")
+        corpus = "/home/ifajcik/deep_learning/word2vec/corpus_data/text8/text8"
+        model_fn = os.path.join(gdir, "text8_iterative/text8_model.vec")
+
 
     with open(gradient_positions_ladder_name, 'rb') as gradient_pos_input:
         with open(gradient_ladder_name, 'rb') as gradient_input:
@@ -282,17 +388,20 @@ if __name__ == "__main__":
                 print("Loading gradient positions...")
                 top_grad_pos = pickle.load(gradient_pos_input)
                 print("Loading gradients...")
-                # top_grads = pickle.load(gradient_input)
-                top_grads = None
+                top_grads = pickle.load(gradient_input)
+                #top_grads = None
                 print("Loading vocab dict...")
                 w2i = pickle.load(w2i_f)
+                print("Loading mapping...")
+                mapping = pickle.load(open(mapping_fn, 'rb')) if mapping_fn else None
 
 
                 def show(x, n=50):
-                    l = word_context_formatted(top_grad_pos, w2i[x], corpus, grads=top_grads)
+                    if mapping is None:
+                        corpus = mcorpus
+                    l = word_context_formatted(top_grad_pos, w2i[x], mcorpus if mapping is not None  else corpus, grads=top_grads, mapping = mapping)
                     [print(l[i]) for i in range(n)]
                     return None
-
 
                 def show_cross(x, y, n=50):
                     print("Loading model...")
@@ -306,11 +415,15 @@ if __name__ == "__main__":
                     print("Finding relations...")
                     l = word_context_cross_formatted(top_grad_pos, w2i[x], w2i[y], corpus, model=model, x_word=x,
                                                      grads=top_grads,
-                                                     y_word=y, method  = sys.argv[2])
+                                                     y_word=y, method  = sys.argv[2], mapping=mapping, mcorpus=mcorpus)
                     [print(l[i]) for i in range(n)]
 
                     return l
 
 
-                cross = show_cross("hudba", "démon")
+                #ladder = show("pes")
+                #ladder = show("PES")
+                r = show_cross("fotbal", "ovce")
+                #r = show_cross("pes", "mačka")
+                #cross = show_cross("hudba", "démon")
                 ipython_shell(locals())

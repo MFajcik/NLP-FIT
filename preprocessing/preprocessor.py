@@ -16,7 +16,7 @@ from tqdm import tqdm
 from ufal import morphodita
 
 from other.logging_config import logger_stub
-from preprocessing.io import read_word_chunks_with_offset
+from preprocessing.nlp_io import read_word_chunks
 from preprocessing.tools import DotDict, find_textfile_split_points
 
 string_list = List[str]
@@ -95,11 +95,11 @@ def _worker(idx, s_offset, e_offset, tmpdir, opts, logger, chunk_size=10485760):
     preprocessing_tools.stopwords = open(opts.stopwords_file, encoding="utf-8", mode='r').read().splitlines()
     if opts.ofile:
         with open(os.path.join(tmpdir, ofilename), mode="w") as of:
-            for chunk in read_word_chunks_with_offset(opts.ifile, chunk_size, s_offset, e_offset):
+            for chunk in read_word_chunks(opts.ifile, chunk_size, s_offset, e_offset):
                 preprocessed, wordcounter = process_text(chunk, preprocessing_tools, opts, logger, wordcounter)
                 of.write(preprocessed)
     else:
-        for chunk in read_word_chunks_with_offset(opts.ifile, chunk_size, s_offset, e_offset):
+        for chunk in read_word_chunks(opts.ifile, chunk_size, s_offset, e_offset):
             preprocessed, wordcounter = process_text(chunk, preprocessing_tools, opts, logger, wordcounter)
     return wordcounter
 
@@ -119,6 +119,11 @@ def process_text(chunk: str, tools, opts, logger, wordcounter) -> (str, dict):
             elif opts.lemmatize_words:
                 output = tools.tagger.getMorpho().rawLemma(lemma.lemma)
             else:
+                output = tools.forms[i]
+
+            # Fix morphodita BUG!! sometimes lemma.lemma is empty str! (For instance for word 'ům')
+            # Skip the lemmatization of such words!
+            if not output:
                 output = tools.forms[i]
 
             # Filter stopwords and punctuation

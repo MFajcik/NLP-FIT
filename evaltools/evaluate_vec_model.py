@@ -18,37 +18,48 @@ from six import iteritems
 from tqdm import tqdm
 from ufal.morphodita import *
 
-from other.logging_config import init_logging
+from other.logging_config import init_logging, logger_stub
 from preprocessing.preprocessor import get_lemma_dict
 
 morpho = None
 lemmas = None
 FIXED_OOV_SCORE = 0
-STRIP_NON_FREQUENT = 10
 DEFAULT_DICT = "../contrib/preprocessing/cz_morphodita/models/czech-morfflex-160310.dict"
 
 
-def read_frequency_vocab(frequency_file):
+def read_frequency_vocab(frequency_file, min_freq=1, quiet=False):
+    """
+
+    :param frequency_file:
+    :param min_freq:
+    :param quiet:
+    :return:
+    """
     vocab_dict = dict()
     with open(frequency_file) as f:
-        for line in tqdm(f):
+        it = f if quiet else tqdm(f)
+        for line in it:
             word_and_count = line.split()
             if len(word_and_count) < 2:
                 logging.critical("Encouneted line with missing/whitespace word:\n'{}'".format(line))
-            elif int(word_and_count[1]) > STRIP_NON_FREQUENT:
+            elif int(word_and_count[1]) >= min_freq:
                 vocab_dict[word_and_count[0]] = int(word_and_count[1])
     return vocab_dict
 
 
-def cnwa2cnwae(input_file, dictionary, model, sort=True, frequency_file=None):
+def evaluate_codenames(input_file, dictionary, model, sort=True, frequency_file=None, logging=logger_stub(),
+                       quiet=False):
     """
     Converts file in cnwa format to file in cnwar format
     Parameters:
-        input_file:     Input file on cnwa format
-        dictionary:     Dictionary compatible with morphodita library
-        model:          Word embedding model
-        sort:           Sort out_buff
-        frequency_file: File containing number of occurences of each word in training corpus
+        :param dictionary: Dictionary compatible with morphodita library
+        :param model: Word embedding model, model must implement methods
+                      model.similarity() and model.vocab
+        :param sort: Sort out_buff
+        :param frequency_file: File containing number of occurences of each word in training corpus
+        :param logging:
+        :param quiet:
+        :return:
     """
 
     global morpho, lemmas
@@ -64,7 +75,6 @@ def cnwa2cnwae(input_file, dictionary, model, sort=True, frequency_file=None):
     except IOError:
         logging.critical("Cannot open input file '%s'\n" % input_file)
         sys.exit(1)
-    model = KeyedVectors.load_word2vec_format(model, binary=False)
 
     logging.info("Loading dictionary '%s'.\n" % dictionary)
     morpho = Morpho.load(dictionary)
@@ -81,7 +91,8 @@ def cnwa2cnwae(input_file, dictionary, model, sort=True, frequency_file=None):
     output_buf = []
     logging.info("Processing lines...")
     hint_dict = dict() if frequency_file is not None else None
-    for line in tqdm(list(input_file)):
+    it = tqdm(list(input_file)) if not quiet else input_file
+    for line in it:
         similarity_dict = {}
         line_list = line.split("\t")
 
@@ -177,6 +188,11 @@ def cnwa2cnwae(input_file, dictionary, model, sort=True, frequency_file=None):
 
 
 def parse_keywords(raw_keyword):
+    """
+
+    :param raw_keyword:
+    :return:
+    """
     tokens_1col = [token.split() for token in raw_keyword.split("/")]
     tokens_1col[-1] = " ".join(tokens_1col[-1].split()[0:-1])  # Remove number
     for i in range(0, len(tokens_1col)):
@@ -186,6 +202,12 @@ def parse_keywords(raw_keyword):
 
 
 def process_line(line, hint_occurence_count):
+    """
+
+    :param line:
+    :param hint_occurence_count:
+    :return:
+    """
     # Remove column with unsorted sequence
     splitted = line.split('\t')
     col0 = splitted[0]
@@ -267,6 +289,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     init_logging(os.path.basename(sys.argv[0]).split(".")[0], logpath=args.logpath)
-    out_buff, oov, totalterms, oov_buf, hint_occurence_count = cnwa2cnwae(args.input, args.dictionary,
-                                                                          args.model, args.sort, args.frequency)
+    model = KeyedVectors.load_word2vec_format(args.model, binary=False)
+    out_buff, oov, totalterms, oov_buf, hint_occurence_count = evaluate_codenames(args.input, args.dictionary,
+                                                                                  model, args.sort, args.frequency,
+                                                                                  logging=logging)
     print_to_cnwae(out_buff, oov, totalterms, oov_buf, args.output, hint_occurence_count)

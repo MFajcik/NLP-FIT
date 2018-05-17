@@ -7,7 +7,6 @@ from typing import List
 import numpy as np
 from tqdm import tqdm
 
-
 def get_character(f):
     try:
         return str(f.read(1), encoding="utf-8")
@@ -46,7 +45,6 @@ def ipython_shell(local_ns=None):
         user_ns.update(local_ns)
     user_ns.update(globals())
     IPython.start_ipython(argv=[], user_ns=user_ns)
-
 
 def find_textfile_split_points(file: str, n: int) -> List[int]:
     """

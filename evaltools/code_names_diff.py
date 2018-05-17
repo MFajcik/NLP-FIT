@@ -54,6 +54,13 @@ rm_brackets = lambda s: rgx_rm_brackets.sub("", s)
 
 
 def diff_results(df_result_a, df_result_b, sort):
+    """
+
+    :param df_result_a:
+    :param df_result_b:
+    :param sort:
+    :return:
+    """
     # contains_word_counts_a = check_if_contains_word_counts(df_result_a)
     # contains_word_counts_b = check_if_contains_word_counts(df_result_b)
     wordstep_a = 2
@@ -117,6 +124,19 @@ def diff_results(df_result_a, df_result_b, sort):
                     items_b = list_b[i].split(":")
                 else:
                     items_b = ("", "")
+
+                class Diff:
+                    def __init__(self, hint=None, expected=None, list=None):
+                        self.hint = hint
+                        self.expected = expected
+                        self.list = list
+
+                class DiffItem:
+                    def __init__(self, name=None, occurences=None, distance_from_hint=None):
+                        self.name = name
+                        self.occurences = occurences
+                        self.distance_from_hint = distance_from_hint
+
                 # if contains_word_counts_a:
                 #     diff_item_a = DiffItem(items_a[0],items_a[1],items_a[2])
                 # else:
@@ -137,25 +157,17 @@ def diff_results(df_result_a, df_result_b, sort):
     return total_avg_prec_diff, total_oov_diff, sorted_diffs
 
 
-class Diff:
-    def __init__(self, hint=None, expected=None, list=None):
-        self.hint = hint
-        self.expected = expected
-        self.list = list
-
-
-class DiffItem:
-    def __init__(self, name=None, occurences=None, distance_from_hint=None):
-        self.name = name
-        self.occurences = occurences
-        self.distance_from_hint = distance_from_hint
-
-
 V_OFFSET_START = 4  # dataframe index, at which ordered list start
 H_OFFSET_START = 1
 
-
 def add_formatting_xslx(df, diffs, writer):
+    """
+
+    :param df:
+    :param diffs:
+    :param writer:
+    :return:
+    """
     wb = writer.book
     ws = writer.sheets['Diff']
     ws.set_column('E:BA', 15)
@@ -177,6 +189,16 @@ def add_formatting_xslx(df, diffs, writer):
 
 
 def set_cell_color(wb, ws, df, row, col, color, expected):
+    """
+
+    :param wb:
+    :param ws:
+    :param df:
+    :param row:
+    :param col:
+    :param color:
+    :param expected:
+    """
     content = df.iloc[row - H_OFFSET_START][col]
     opts = {'bold': rm_brackets(content) in expected, 'bg_color': color}
     myformat = wb.add_format(opts)
@@ -184,11 +206,24 @@ def set_cell_color(wb, ws, df, row, col, color, expected):
 
 
 def align(list_to_align, length=FRAME_LIST_LENGTH):
+    """
+
+    :param list_to_align:
+    :param length:
+    :return:
+    """
     togen = length - len(list_to_align)
     return list_to_align + ["_" for _ in range(togen)]
 
 
 def form_data_frame(t_avp, t_oov, diffs):
+    """
+
+    :param t_avp:
+    :param t_oov:
+    :param diffs:
+    :return:
+    """
     df = pd.DataFrame(columns=align(["Index", "AVP Diff", "Hint", "Explanation"]))
     idx = 0
     for diff in tqdm(diffs):

@@ -1,20 +1,20 @@
 import os
 from concurrent.futures import ProcessPoolExecutor
 
-from preprocessing.io import read_word_chunks_with_offset
+from preprocessing.nlp_io import read_word_chunks
 from preprocessing.tools import find_textfile_split_points
 
-_default_chunk_size = 5242880  # 5MB
+DEFAULT_CHUNK_SIZE = 5242880  # 5MB
 
 
-def _worker(callback, file, idx, start_offset, end_offset, opts, logger, chunk_size=int(_default_chunk_size)):
+def _worker(callback, file, idx, start_offset, end_offset, opts, logger, chunk_size=int(DEFAULT_CHUNK_SIZE)):
     result = None
-    for textchunk in read_word_chunks_with_offset(file, chunk_size, start_offset, end_offset):
+    for textchunk in read_word_chunks(file, chunk_size, start_offset, end_offset):
         result = callback(textchunk, result, idx, opts, logger)
     return result
 
 
-def parallel_worker(callback, file, opts, logger, num_of_processes=8, worker=_worker, chunk_size=_default_chunk_size,
+def parallel_worker(callback, file, opts, logger, num_of_processes=8, worker=_worker, chunk_size=DEFAULT_CHUNK_SIZE,
                     pool_executor=ProcessPoolExecutor):
     filesize = os.path.getsize(file)
     logger.info("File size %d" % filesize)

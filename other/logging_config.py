@@ -35,6 +35,10 @@ class logger_stub():
     def info(self, str):
         print(str)
 
+    def error(self, str):
+        sys.stderr.write(str)
+        sys.stderr.write("\n")
+
     def critical(self, str):
         sys.stderr.write(str)
         sys.stderr.write("\n")
