@@ -27,26 +27,6 @@ FIXED_OOV_SCORE = 0
 DEFAULT_DICT = "../contrib/preprocessing/cz_morphodita/models/czech-morfflex-160310.dict"
 
 
-def read_frequency_vocab(frequency_file, min_freq=1, quiet=False):
-    """
-
-    :param frequency_file:
-    :param min_freq:
-    :param quiet:
-    :return:
-    """
-    vocab_dict = dict()
-    with open(frequency_file) as f:
-        it = f if quiet else tqdm(f)
-        for line in it:
-            word_and_count = line.split()
-            if len(word_and_count) < 2:
-                logging.critical("Encouneted line with missing/whitespace word:\n'{}'".format(line))
-            elif int(word_and_count[1]) >= min_freq:
-                vocab_dict[word_and_count[0]] = int(word_and_count[1])
-    return vocab_dict
-
-
 def evaluate_codenames(input_file, dictionary, model, sort=True, frequency_file=None, logging=logger_stub(),
                        quiet=False):
     """

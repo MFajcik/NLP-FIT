@@ -6,6 +6,27 @@ import threading
 from typing import List
 import numpy as np
 from tqdm import tqdm
+import logging
+
+
+def read_frequency_vocab(frequency_file, min_freq=1, quiet=False):
+    """
+
+    :param frequency_file:
+    :param min_freq:
+    :param quiet:
+    :return:
+    """
+    vocab_dict = dict()
+    with open(frequency_file) as f:
+        it = f if quiet else tqdm(f)
+        for line in it:
+            word_and_count = line.split()
+            if len(word_and_count) < 2:
+                logging.critical("Encouneted line with missing/whitespace word:\n'{}'".format(line))
+            elif int(word_and_count[1]) >= min_freq:
+                vocab_dict[word_and_count[0]] = int(word_and_count[1])
+    return vocab_dict
 
 def get_character(f):
     try:
