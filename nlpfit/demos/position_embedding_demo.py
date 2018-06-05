@@ -11,5 +11,5 @@ for j in range(l.shape[1]):
         l[j][d]=(1-j/M) - (d/D)*(1-2*j/M)
 
 print(l)
-print("##")
+print("\n## Weights for word embedding no. 1 ##")
 print(l[:,1])
