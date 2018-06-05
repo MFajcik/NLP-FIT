@@ -3,7 +3,7 @@
 import scipy
 from gensim.models import KeyedVectors
 
-from preprocessing.tools import ipython_shell
+from nlpfit.preprocessing.tools import ipython_shell
 
 
 def cdis(u,v):

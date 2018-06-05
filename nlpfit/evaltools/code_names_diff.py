@@ -8,7 +8,7 @@ import sys
 from tqdm import tqdm
 from colour import Color
 
-from other.logging_config import init_logging
+from nlpfit.other.logging_config import init_logging
 import re
 
 '''Globals'''

@@ -8,7 +8,7 @@ import scipy
 from sortedcontainers import SortedList
 from tqdm import tqdm
 
-from preprocessing.tools import DotDict, ipython_shell
+from nlpfit.preprocessing.tools import DotDict, ipython_shell
 
 opts = DotDict()
 opts.window_size = 5

@@ -15,9 +15,9 @@ from ufal_morphodita import Morpho, TaggedLemmas
 from tqdm import tqdm
 from ufal import morphodita
 
-from other.logging_config import logger_stub
-from preprocessing.nlp_io import read_word_chunks
-from preprocessing.tools import DotDict, find_textfile_split_points
+from nlpfit.other.logging_config import logger_stub
+from nlpfit.preprocessing import read_word_chunks
+from nlpfit.preprocessing.tools import DotDict, find_textfile_split_points
 
 string_list = List[str]
 

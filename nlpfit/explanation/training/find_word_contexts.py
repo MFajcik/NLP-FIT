@@ -6,9 +6,8 @@ import numpy as np
 from scipy.sparse import lil_matrix
 from tqdm import tqdm
 
-from other.logging_config import logger_stub
-from other.paralellism import parallel_worker
-from preprocessing.tools import DotDict
+from nlpfit.other.logging_config import logger_stub
+from nlpfit.preprocessing.tools import DotDict
 
 
 class WordContextCalculator():

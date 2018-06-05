@@ -6,8 +6,8 @@ import sys
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from other.logging_config import init_logging, logger_stub
-from preprocessing.preprocessor import lemmatize_list
+from nlpfit.other.logging_config import init_logging, logger_stub
+from nlpfit.preprocessing import lemmatize_list
 
 
 def get_words(input):

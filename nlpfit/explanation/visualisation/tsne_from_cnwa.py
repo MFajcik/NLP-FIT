@@ -13,8 +13,8 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from other.logging_config import init_logging
-from preprocessing.preprocessor import lemmatize_list
+from nlpfit.other.logging_config import init_logging
+from nlpfit.preprocessing import lemmatize_list
 
 
 def get_words(input):

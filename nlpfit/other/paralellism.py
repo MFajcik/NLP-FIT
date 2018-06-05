@@ -1,8 +1,8 @@
 import os
 from concurrent.futures import ProcessPoolExecutor
 
-from preprocessing.nlp_io import read_word_chunks
-from preprocessing.tools import find_textfile_split_points
+from nlpfit.preprocessing import read_word_chunks
+from nlpfit.preprocessing.tools import find_textfile_split_points
 
 DEFAULT_CHUNK_SIZE = 5242880  # 5MB
 

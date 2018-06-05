@@ -14,13 +14,12 @@ import os
 import sys
 
 from gensim.models.keyedvectors import KeyedVectors
+from nlpfit.preprocessing.preprocessor import get_lemma_dict
 from six import iteritems
 from tqdm import tqdm
 from ufal.morphodita import *
 
-from other.logging_config import init_logging, logger_stub
-from preprocessing.preprocessor import get_lemma_dict
-
+from nlpfit.other.logging_config import init_logging, logger_stub
 morpho = None
 lemmas = None
 FIXED_OOV_SCORE = 0

@@ -6,7 +6,7 @@ from gensim.models.keyedvectors import KeyedVectors
 from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.manifold import TSNE
 
-from preprocessing.tools import read_frequency_vocab
+from nlpfit.preprocessing.tools import read_frequency_vocab
 
 
 def plot_with_labels(low_dim_embs, labels, filename='tsne_.png'):

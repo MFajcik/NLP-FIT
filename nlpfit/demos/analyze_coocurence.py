@@ -2,8 +2,8 @@
 # Martin Fajcik
 import sys
 
-from explanation.training.find_word_contexts import WordContextCalculator
-from explanation.visualisation.tsne_on_vec import read_vocab
+from nlpfit.explanation.training import WordContextCalculator
+from nlpfit.explanation.visualisation.tsne_on_vec import read_vocab
 
 if __name__ == "__main__":
     CWC2011VOCAB = "/home/ifajcik/deep_learning/word2vec/corpus_data/corpus_vocabs/vocab_cwc2011.txt"

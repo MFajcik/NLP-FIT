@@ -4,8 +4,8 @@ import pickle
 
 import os
 
-from preprocessing.nlp_io import read_word_chunks
-from other.paralellism import DEFAULT_CHUNK_SIZE
+from nlpfit.preprocessing import read_word_chunks
+from nlpfit.other.paralellism import DEFAULT_CHUNK_SIZE
 from tqdm import tqdm
 
 
