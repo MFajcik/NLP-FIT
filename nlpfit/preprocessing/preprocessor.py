@@ -114,7 +114,9 @@ def process_text(chunk: str, tools, opts, logger, wordcounter) -> (str, dict):
 
 
 # 10MB chunks per process
-def _worker(idx, s_offset, e_offset, tmpdir, opts, logger, chunk_size=10485760, text_processor=process_text):
+# Using Czech NLP tool for tagging/lemmatization 'morphodita'
+
+def cz_worker(idx, s_offset, e_offset, tmpdir, opts, logger, chunk_size=10485760, text_processor=process_text):
     ofilename = "{}_".format(idx) + os.path.basename(opts.ofile) if opts.ofile else None
     wordcounter = Counter() if opts.count_words else None
 
@@ -143,7 +145,8 @@ default_stopwords_file = "../contrib/preprocessing/cz_stopwords/czechST.txt"
 def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
                     remove_stop_words: bool = True, tag_words: bool = False, count_words: bool = False, logger=None,
                     num_of_processes: int = 8, tagger_file=default_tagger_file,
-                    stopwords_file=default_stopwords_file, tmpdir="tmp", text_processor=process_text) -> (float, dict):
+                    stopwords_file=default_stopwords_file, tmpdir="tmp", text_processor=process_text,
+                    process_worker=cz_worker, remove_puncuation = True, to_lowercase=True, replace_nums=True) -> (float, dict):
     """
     Universal function for parallel file preprocessing
     :param remove_stop_words:
@@ -157,6 +160,9 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
     :param tagger_file:
     :param stopwords_file:
     :param tmpdir: name of TMP dir used during preprocessing, do NOT delete this dir during the preprocess stage
+    :param text_processor:
+    :param process_worker:
+    :param remove_puncuation:
     :return time spent by preprocessing, dict of word counts if specified
     """
     opts = DotDict()
@@ -169,6 +175,9 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
     opts.stopwords_file = stopwords_file
     opts.tmpdir = tmpdir
     opts.remove_stop_words = remove_stop_words
+    opts.remove_puncuation = remove_puncuation
+    opts.replace_nums = replace_nums
+    opts.to_lowercase = to_lowercase
 
     if logger is None:
         logger = logger_stub()
@@ -187,7 +196,7 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
         for idx in tqdm(list(range(num_of_processes))):
             start_offset = offsets[idx]
             end_offset = offsets[idx + 1]
-            futures[idx] = p.submit(_worker, idx, start_offset, end_offset, tmpdir, opts, logger,
+            futures[idx] = p.submit(process_worker, idx, start_offset, end_offset, tmpdir, opts, logger,
                                     text_processor=text_processor)
 
     wordcounter = sum(list(map(lambda x: x.result(), futures)), Counter()) if opts.count_words else None
