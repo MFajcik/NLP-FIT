@@ -12,11 +12,11 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import List
 from ufal_morphodita import Morpho, TaggedLemmas
 
+from nlpfit.preprocessing.nlp_io import read_word_chunks
 from tqdm import tqdm
 from ufal import morphodita
 
 from nlpfit.other.logging_config import logger_stub
-from nlpfit.preprocessing import read_word_chunks
 from nlpfit.preprocessing.tools import DotDict, find_textfile_split_points
 
 string_list = List[str]
@@ -81,29 +81,6 @@ def merge_files(tmpdir, ofile):
     shutil.move(os.path.join(tmpdir, to_be_merged_files[0]), ofile)
 
 
-# 10MB chunks per process
-def _worker(idx, s_offset, e_offset, tmpdir, opts, logger, chunk_size=10485760):
-    ofilename = "{}_".format(idx) + os.path.basename(opts.ofile) if opts.ofile else None
-    wordcounter = Counter() if opts.count_words else None
-
-    preprocessing_tools = DotDict()
-    preprocessing_tools.tagger = morphodita.Tagger.load(opts.tagger_file)
-    preprocessing_tools.forms = morphodita.Forms()
-    preprocessing_tools.lemmas = morphodita.TaggedLemmas()
-    preprocessing_tools.tokens = morphodita.TokenRanges()
-    preprocessing_tools.tokenizer = preprocessing_tools.tagger.newTokenizer()
-    preprocessing_tools.stopwords = open(opts.stopwords_file, encoding="utf-8", mode='r').read().splitlines()
-    if opts.ofile:
-        with open(os.path.join(tmpdir, ofilename), mode="w") as of:
-            for chunk in read_word_chunks(opts.ifile, chunk_size, s_offset, e_offset):
-                preprocessed, wordcounter = process_text(chunk, preprocessing_tools, opts, logger, wordcounter)
-                of.write(preprocessed)
-    else:
-        for chunk in read_word_chunks(opts.ifile, chunk_size, s_offset, e_offset):
-            preprocessed, wordcounter = process_text(chunk, preprocessing_tools, opts, logger, wordcounter)
-    return wordcounter
-
-
 def process_text(chunk: str, tools, opts, logger, wordcounter) -> (str, dict):
     tools.tokenizer.setText(chunk)
     processed_chunk = ""
@@ -136,6 +113,29 @@ def process_text(chunk: str, tools, opts, logger, wordcounter) -> (str, dict):
     return processed_chunk, wordcounter
 
 
+# 10MB chunks per process
+def _worker(idx, s_offset, e_offset, tmpdir, opts, logger, chunk_size=10485760, text_processor=process_text):
+    ofilename = "{}_".format(idx) + os.path.basename(opts.ofile) if opts.ofile else None
+    wordcounter = Counter() if opts.count_words else None
+
+    preprocessing_tools = DotDict()
+    preprocessing_tools.tagger = morphodita.Tagger.load(opts.tagger_file)
+    preprocessing_tools.forms = morphodita.Forms()
+    preprocessing_tools.lemmas = morphodita.TaggedLemmas()
+    preprocessing_tools.tokens = morphodita.TokenRanges()
+    preprocessing_tools.tokenizer = preprocessing_tools.tagger.newTokenizer()
+    preprocessing_tools.stopwords = open(opts.stopwords_file, encoding="utf-8", mode='r').read().splitlines()
+    if opts.ofile:
+        with open(os.path.join(tmpdir, ofilename), mode="w") as of:
+            for chunk in read_word_chunks(opts.ifile, chunk_size, s_offset, e_offset):
+                preprocessed, wordcounter = text_processor(chunk, preprocessing_tools, opts, logger, wordcounter)
+                of.write(preprocessed)
+    else:
+        for chunk in read_word_chunks(opts.ifile, chunk_size, s_offset, e_offset):
+            preprocessed, wordcounter = text_processor(chunk, preprocessing_tools, opts, logger, wordcounter)
+    return wordcounter
+
+
 default_tagger_file = "../contrib/preprocessing/cz_morphodita/models/czech-morfflex-pdt-160310.tagger"
 default_stopwords_file = "../contrib/preprocessing/cz_stopwords/czechST.txt"
 
@@ -143,7 +143,7 @@ default_stopwords_file = "../contrib/preprocessing/cz_stopwords/czechST.txt"
 def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
                     remove_stop_words: bool = True, tag_words: bool = False, count_words: bool = False, logger=None,
                     num_of_processes: int = 8, tagger_file=default_tagger_file,
-                    stopwords_file=default_stopwords_file, tmpdir="tmp") -> (float, dict):
+                    stopwords_file=default_stopwords_file, tmpdir="tmp", text_processor=process_text) -> (float, dict):
     """
     Universal function for parallel file preprocessing
     :param remove_stop_words:
@@ -187,7 +187,8 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
         for idx in tqdm(list(range(num_of_processes))):
             start_offset = offsets[idx]
             end_offset = offsets[idx + 1]
-            futures[idx] = p.submit(_worker, idx, start_offset, end_offset, tmpdir, opts, logger)
+            futures[idx] = p.submit(_worker, idx, start_offset, end_offset, tmpdir, opts, logger,
+                                    text_processor=text_processor)
 
     wordcounter = sum(list(map(lambda x: x.result(), futures)), Counter()) if opts.count_words else None
     logger.info("Merging files...")
