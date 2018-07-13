@@ -2,16 +2,18 @@
 # Authors: Martin Fajčík FIT@BUT
 import os
 
+from nlpfit.preprocessing.tools import eprint
+
 
 def read_word_lists(*args, **kwargs):
     chunk = read_word_chunks(*args, **kwargs)
     report_bytesread = kwargs.get("report_bytesread", False)
     for item in chunk:
-        yield (item[0].split(),item[1]) if report_bytesread else item.split()
+        yield (item[0].split(), item[1]) if report_bytesread else item.split()
 
 
 def read_word_chunks(filename: str, bytes_to_read: int,
-                     startoffset: int = -1, endoffset: int = -1, report_bytesread = False):
+                     startoffset: int = -1, endoffset: int = -1, report_bytesread=False):
     """
     Lazy file reading,
     :param startoffset: file offset, if -1 it is set to start of file
@@ -35,7 +37,7 @@ def read_word_chunks(filename: str, bytes_to_read: int,
             if (offset + bytes_to_read > endoffset):
                 bytes_to_read = endoffset - offset
             buf = inp.read(bytes_to_read)
-            bytes_read= inp.tell()
+            bytes_read = inp.tell()
             offset = inp.tell()
             if not buf:
                 break
@@ -48,8 +50,14 @@ def read_word_chunks(filename: str, bytes_to_read: int,
 
             buf, last = buf.rsplit(None, 1) if not str.isspace(chr(buf[-1])) else (buf, b"")
             # print("Last==%s"%last)
-            yield (buf.decode("utf-8"),bytes_read) if report_bytesread else buf.decode("utf-8")
-        yield ((b' ' + last).decode("utf-8"),bytes_read) if report_bytesread else (b' ' + last).decode("utf-8")
+            try:
+                yield (buf.decode("utf-8"), bytes_read) if report_bytesread else buf.decode("utf-8")
+            except UnicodeDecodeError as e:
+                eprint(e)
+                eprint("buf:\n{}".format(buf))
+                eprint("last:\n{}".format(last))
+                eprint("offset:\n{}".format(offset))
+        yield ((b' ' + last).decode("utf-8"), bytes_read) if report_bytesread else (b' ' + last).decode("utf-8")
 
 
 def read_words(filename, chars_to_read):

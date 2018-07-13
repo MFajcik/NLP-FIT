@@ -9,6 +9,10 @@ from tqdm import tqdm
 import logging
 
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
 def read_frequency_vocab(frequency_file, min_freq=1, quiet=False):
     """
 
@@ -27,6 +31,7 @@ def read_frequency_vocab(frequency_file, min_freq=1, quiet=False):
             elif int(word_and_count[1]) >= min_freq:
                 vocab_dict[word_and_count[0]] = int(word_and_count[1])
     return vocab_dict
+
 
 def get_character(f):
     try:
@@ -66,6 +71,7 @@ def ipython_shell(local_ns=None):
         user_ns.update(local_ns)
     user_ns.update(globals())
     IPython.start_ipython(argv=[], user_ns=user_ns)
+
 
 def find_textfile_split_points(file: str, n: int) -> List[int]:
     """
