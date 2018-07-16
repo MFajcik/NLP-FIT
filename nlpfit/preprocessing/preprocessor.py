@@ -143,7 +143,7 @@ default_stopwords_file = "../contrib/preprocessing/cz_stopwords/czechST.txt"
 
 
 def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
-                    remove_stop_words: bool = True, tag_words: bool = False, count_words: bool = False, logger=None,
+                    remove_stop_words: bool = True, postag_words: bool = False, count_words: bool = False, logger=None,
                     num_of_processes: int = 8, tagger_file=default_tagger_file,
                     stopwords_file=default_stopwords_file, tmpdir="tmp", text_processor=process_text,
                     process_worker=cz_worker, remove_puncuation = True, to_lowercase=True, replace_nums=True) -> (float, dict):
@@ -153,7 +153,7 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
     :param ifile: input file name
     :param ofile: out_buff file name
     :param lemmatize_words:
-    :param tag_words: if option is True, words are tagged with their POS tags
+    :param postag_words: if option is True, words are tagged with their POS tags
     :param count_words:
     :param logger: custom logger
     :param num_of_processes: number of parallel processes used in preprocessing
@@ -169,7 +169,7 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
     opts.ifile = ifile
     opts.ofile = ofile
     opts.lemmatize_words = lemmatize_words
-    opts.tag_words = tag_words
+    opts.postag_words = postag_words
     opts.count_words = count_words
     opts.tagger_file = tagger_file
     opts.stopwords_file = stopwords_file
