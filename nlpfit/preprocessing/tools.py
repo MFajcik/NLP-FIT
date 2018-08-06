@@ -27,10 +27,15 @@ def read_frequency_vocab(frequency_file, min_freq=1, quiet=False):
         it = f if quiet else tqdm(f)
         for line in it:
             word_and_count = line.split()
-            if len(word_and_count) < 2:
-                logging.critical("Encouneted line with missing/whitespace word:\n'{}'".format(line))
-            elif int(word_and_count[1]) >= min_freq:
-                vocab_dict[word_and_count[0]] = int(word_and_count[1])
+            try:
+                if len(word_and_count) < 2:
+                    logging.critical("Encountered line with missing/whitespace word:\n'{}'".format(line))
+                elif int(word_and_count[1]) >= min_freq:
+                    vocab_dict[word_and_count[0]] = int(word_and_count[1])
+
+            except ValueError:
+                logging.critical("Encountered line without int at 2nd position:\n'{}'".format(line))
+
     return vocab_dict
 
 
