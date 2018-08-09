@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 # Martin Fajcik
+"""
+Short snippet that runs wordcontextcalculator
+"""
 import sys
 
-from nlpfit.explanation.training import WordContextCalculator
-from nlpfit.explanation.visualisation.tsne_on_vec import read_vocab
+from nlpfit.explanation.training.find_word_contexts import WordContextCalculator
+from nlpfit.preprocessing.tools import read_frequency_vocab
 
 if __name__ == "__main__":
     CWC2011VOCAB = "/home/ifajcik/deep_learning/word2vec/corpus_data/corpus_vocabs/vocab_cwc2011.txt"
@@ -11,7 +14,7 @@ if __name__ == "__main__":
     CWC1megtest = "/home/ifajcik/deep_learning/word2vec/corpus_data/cwc_corpus2011/cwc1meg"
     EBOOKSVOCAB = "/home/ifajcik/deep_learning/word2vec/corpus_data/corpus_vocabs/vocab_ebooks_nostopwords.txt"
     EBOOKSCORPUS = "/home/ifajcik/deep_learning/word2vec/corpus_data/ebooks_corpus_CZ/e_knihy_preprocessed.txt"
-    vocab = read_vocab(EBOOKSVOCAB, min_freq=5)
+    vocab = read_frequency_vocab(EBOOKSVOCAB, min_freq=5)
     bow_vectors = WordContextCalculator(EBOOKSCORPUS, vocab, num_of_processes=int(sys.argv[1]), window=5)
     bow_vectors.word_bow()
     print("Saving BOW matrix")

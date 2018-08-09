@@ -197,7 +197,7 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
             start_offset = offsets[idx]
             end_offset = offsets[idx + 1]
             futures[idx] = p.submit(process_worker, idx, start_offset, end_offset, tmpdir, opts, logger,
-                                    text_processor=text_processor)
+                                    text_processor=text_processor, num_of_processes=num_of_processes)
 
     wordcounter = sum(list(map(lambda x: x.result(), futures)), Counter()) if opts.count_words else None
     logger.info("Merging files...")

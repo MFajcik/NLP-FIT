@@ -1,4 +1,3 @@
-# for each word in corpus, we would like to find it's global average context
 
 import time
 import pickle
@@ -12,7 +11,7 @@ from nlpfit.preprocessing.tools import DotDict
 
 class WordContextCalculator():
     """
-    TODO: documentation
+    Analyzes word context
     """
     def __init__(self, corpus, vocabulary, window=5, num_of_processes=8, logger=logger_stub()):
         self.vocab = vocabulary

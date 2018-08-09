@@ -2,7 +2,6 @@
 #Martin Fajcik
 import scipy
 from gensim.models import KeyedVectors
-
 from nlpfit.preprocessing.tools import ipython_shell
 
 
