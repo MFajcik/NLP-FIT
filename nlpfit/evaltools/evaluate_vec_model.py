@@ -14,19 +14,20 @@ import os
 import sys
 
 from gensim.models.keyedvectors import KeyedVectors
+from nlpfit.other.logging_config import setup_logging
 from nlpfit.preprocessing.preprocessor import get_lemma_dict
+from nlpfit.preprocessing.tools import read_frequency_vocab
 from six import iteritems
 from tqdm import tqdm
 from ufal.morphodita import *
 
-from nlpfit.other.logging_config import init_logging, logger_stub
 morpho = None
 lemmas = None
 FIXED_OOV_SCORE = 0
 DEFAULT_DICT = "../contrib/preprocessing/cz_morphodita/models/czech-morfflex-160310.dict"
 
 
-def evaluate_codenames(input_file, dictionary, model, sort=True, frequency_file=None, logging=logger_stub(),
+def evaluate_codenames(input_file, dictionary, model, sort=True, frequency_file=None,
                        quiet=False):
     """
     Converts file in cnwa format to file in cnwar format
@@ -267,9 +268,8 @@ if __name__ == "__main__":
                         help="Explicit setting of log folder path")
 
     args = parser.parse_args()
-    init_logging(os.path.basename(sys.argv[0]).split(".")[0], logpath=args.logpath)
+    setup_logging(os.path.basename(sys.argv[0]).split(".")[0], logpath=args.logpath)
     model = KeyedVectors.load_word2vec_format(args.model, binary=False)
     out_buff, oov, totalterms, oov_buf, hint_occurence_count = evaluate_codenames(args.input, args.dictionary,
-                                                                                  model, args.sort, args.frequency,
-                                                                                  logging=logging)
+                                                                                  model, args.sort, args.frequency)
     print_to_cnwae(out_buff, oov, totalterms, oov_buf, args.output, hint_occurence_count)

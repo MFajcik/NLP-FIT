@@ -12,12 +12,11 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import List
 from ufal_morphodita import Morpho, TaggedLemmas
 
+from nlpfit.other.logging_config import logger_stub
 from nlpfit.preprocessing.nlp_io import read_word_chunks
+from nlpfit.preprocessing.tools import DotDict, find_textfile_split_points
 from tqdm import tqdm
 from ufal import morphodita
-
-from nlpfit.other.logging_config import logger_stub
-from nlpfit.preprocessing.tools import DotDict, find_textfile_split_points
 
 string_list = List[str]
 
@@ -146,7 +145,8 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
                     remove_stop_words: bool = True, postag_words: bool = False, count_words: bool = False, logger=None,
                     num_of_processes: int = 8, tagger_file=default_tagger_file,
                     stopwords_file=default_stopwords_file, tmpdir="tmp", text_processor=process_text,
-                    process_worker=cz_worker, remove_puncuation = True, to_lowercase=True, replace_nums=True) -> (float, dict):
+                    process_worker=cz_worker, remove_puncuation=True, to_lowercase=True, replace_nums=True,
+                    num_replacement="<num>") -> (float, dict):
     """
     Universal function for parallel file preprocessing
     :param remove_stop_words:
@@ -177,6 +177,7 @@ def preprocess_file(ifile: str, ofile, lemmatize_words: bool = True,
     opts.remove_stop_words = remove_stop_words
     opts.remove_puncuation = remove_puncuation
     opts.replace_nums = replace_nums
+    opts.num_replacement = num_replacement
     opts.to_lowercase = to_lowercase
 
     if logger is None:
