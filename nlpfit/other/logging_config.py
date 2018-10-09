@@ -63,7 +63,10 @@ def setup_logging(
                     f['()'] = globals()[f['()']]
             logging.config.dictConfig(config)
     else:
-        logging.basicConfig(level=default_level, filename=os.path.join(logpath, timestamp + "base.log"))
+        lpath=os.path.join(logpath, timestamp)
+        if not os.path.exists(lpath):
+           os.makedirs(lpath)
+        logging.basicConfig(level=default_level, filename=os.path.join(lpath,"base.log"))
 
 
 @Deprecated
